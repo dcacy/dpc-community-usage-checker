@@ -3,6 +3,6 @@ applications:
   memory: 256M
   instances: 1
   domain: mybluemix.net
-  name: dpc-connections-user-checker
-  host: dpc-connections-user-checker
+  name: dpc-community-usage-checker
+  host: dpc-community-usage-checker
   disk_quota: 1024M

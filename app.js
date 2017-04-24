@@ -21,7 +21,7 @@ var properties = propertiesReader('./connections.properties');
 console.log('properties are ', properties);
 //console.log('userid is', properties.get('connections_userid'));
 
-var ALL_COMMUNITIES_URI = '/communities/service/atom/communities/all';
+var ALL_COMMUNITIES_URI = '/communities/service/atom/communities/all?ps=500';
 var COMM_MEMBERS_URI = '/communities/service/atom/community/members?communityUuid=';
 
 var community = require('./modules/community');
@@ -31,10 +31,10 @@ var community = require('./modules/community');
 * RETURNS: json containing the data from Connections
 */
 app.get('/getAllCommunities', function(req, res) {
-  console.log('in getAllCommunities and properties are', properties);
+//  console.log('in getAllCommunities and properties are', properties);
 	var options = {
 	    method: 'GET',
-	    uri: 'https://' + properties.get('connections_host') + ALL_COMMUNITIES_URI + '?ps=100',
+	    uri: 'https://' + properties.get('connections_host') + ALL_COMMUNITIES_URI,
 	    "auth": {
         "user": properties.get('connections_userid'),
         "pass": properties.get('connections_password')
@@ -43,7 +43,7 @@ app.get('/getAllCommunities', function(req, res) {
     json: false // Automatically parses the body to JSON
 	};
 	console.log('getting all communities');
-
+	console.dir(options);
 	rp(options)
   .then(function (resultXML) {
       console.log('getting all communities succeeded ');

@@ -10,7 +10,7 @@ var dateMath = require('date-arithmetic');
 */
 exports.getCommunityMembers = function(properties, id) {
 
-	var COMM_MEMBERS_URI = '/communities/service/atom/community/members?communityUuid=';
+	var COMM_MEMBERS_URI = '/communities/service/atom/community/members?ps=500&communityUuid=';
 
 
   console.log('in getCommunityMembers');

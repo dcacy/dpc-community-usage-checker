@@ -13,6 +13,12 @@
 .loadingDiv {
 	text-align: center;
 }
+.fileSizeDiv {
+	padding-bottom: 5px;
+}
+.fileSize {
+	font-weight: bold;
+}
 .communityName:hover, .chosenCommunity {
 	color: blue;
 	background-color: #bbccdd;

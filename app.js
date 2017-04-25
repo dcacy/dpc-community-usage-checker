@@ -21,82 +21,25 @@ var properties = propertiesReader('./connections.properties');
 console.log('properties are ', properties);
 //console.log('userid is', properties.get('connections_userid'));
 
-var ALL_COMMUNITIES_URI = '/communities/service/atom/communities/all?ps=500';
-var COMM_MEMBERS_URI = '/communities/service/atom/community/members?communityUuid=';
+//var ALL_COMMUNITIES_URI = '/communities/service/atom/communities/all?ps=500';
+//var COMM_MEMBERS_URI = '/communities/service/atom/community/members?communityUuid=';
 
 var community = require('./modules/community');
 /*
-* this call will get the list of Managers from Connections
+* this call will get the list of Communities from Connections
 * INPUT: n/a
 * RETURNS: json containing the data from Connections
 */
 app.get('/getAllCommunities', function(req, res) {
-//  console.log('in getAllCommunities and properties are', properties);
-	var options = {
-	    method: 'GET',
-	    uri: 'https://' + properties.get('connections_host') + ALL_COMMUNITIES_URI,
-	    "auth": {
-        "user": properties.get('connections_userid'),
-        "pass": properties.get('connections_password')
-    },
-    resolveWithFullResponse: true, // gives us the statusCode
-    json: false // Automatically parses the body to JSON
-	};
-	console.log('getting all communities');
-	console.dir(options);
-	rp(options)
-  .then(function (resultXML) {
-      console.log('getting all communities succeeded ');
-      if (resultXML.statusCode !== 200) {
-        // if our app can't authenticate then it must have been
-        // disabled. Just return.
-        console.log("ERROR: App can't authenticate");
-        res.status(500).end('error getting communities', resultXML);
-//        res.end();
-      }
-//      console.log('body is', parsedBody.body);
-//      console.log('resultXML is', resultXML.body);
-      parseString(resultXML.body, { explicitArray:false }, function(err, parsedXml) {
-        if ( err === null ) {
-          console.log('this many communities:', parsedXml.feed.entry.length);
-//          json = parsedXml.feed.entry;
-//          for (var i = 0; i < parsedXml.feed.entry.length; i++ ) {
-//            var manager = { name: parsedXml.feed.entry[i].title._, email: parsedXml.feed.entry[i].contributor.email};
-//            managers.push(manager);
-//          res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Content-Type','text/plain');
-          var communityInfo = [];
-          for (var i = 0; i < parsedXml.feed.entry.length; i++) {
-          	var entry = {
-          			title: parsedXml.feed.entry[i].title._,
-          			id: parsedXml.feed.entry[i]['snx:communityUuid'],
-          			updated: parsedXml.feed.entry[i].updated,
-          			owner: parsedXml.feed.entry[i].author.name,
-          			email: parsedXml.feed.entry[i].author.email,
-          			created: parsedXml.feed.entry[i].published,
-          			membercount: parsedXml.feed.entry[i]["snx:membercount"]
-//          			nbrOfMembers:
-          		};
-//          	console.log('entry is', entry);
-////          	console.log(parsedXml.feed.entry);
-          	communityInfo.push(entry);
-          }
-          res.end(JSON.stringify(communityInfo,null,3));
-//          	res.end(JSON.stringify(parsedXml,null,3));
-          
-        } else {
-          // handle error condition in parse
-        	console.log('error!!', err);
-        	res.status(500).end('error in parse: ' + err);
-        }
-      });
-//      res.end(resultXML.body);
-  })
-  .catch(function (err) {
-      console.log('getting all communities actually failed:', err);
-      res.status(500).send(JSON.stringify(err));
-      res.end();
-  });
+	community.getAllCommunities(properties)
+	.then(function(result){
+		res.json(result);
+	})
+	.catch(function(err){
+		console.log('getAllCommunities returned error',err);
+		res.status(500).end('get all communities returned error:' + err.message);
+	});
+
 
 });
 

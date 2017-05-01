@@ -11,6 +11,7 @@ var dateMath = require('date-arithmetic');
 */
 exports.getAllCommunities = function(properties) {
 	
+	console.log('in .getAllCommunities');
 	return new Promise(function(resolve, reject) {
 		
 		var ALL_COMMUNITIES_URI = '/communities/service/atom/communities/all?ps=500';
@@ -25,18 +26,14 @@ exports.getAllCommunities = function(properties) {
 		  resolveWithFullResponse: true, // gives us the statusCode
 		  json: false // do not parse the result to JSON
 		};
-		console.log('getting all communities');
 		rp(options)
 		.then(function (resultXML) {
-		    console.log('getting all communities succeeded ');
-		    if (resultXML.statusCode !== 200) {
-		      console.log('error getting communities', resultXML);
-		      reject('error getting communities: ' + resultXML.toString());
-		    }
+		    // parse the XML to JSON
 		    parseString(resultXML.body, { explicitArray:false }, function(err, parsedXml) {
 		      if ( err === null ) {
 		        var communityInfo = [];
 		        for (var i = 0; i < parsedXml.feed.entry.length; i++) {
+		        	// just return some of the data
 		        	var entry = {
 		        			title: parsedXml.feed.entry[i].title._,
 		        			id: parsedXml.feed.entry[i]['snx:communityUuid'],
@@ -67,11 +64,12 @@ exports.getAllCommunities = function(properties) {
 */
 exports.getCommunityMembers = function(properties, id) {
 
+  console.log('in .getCommunityMembers, id is [', id, ']');
+
 	return new Promise(function(resolve, reject){
 		
 		var COMM_MEMBERS_URI = '/communities/service/atom/community/members?ps=1000&communityUuid=';
 
-	  console.log('in getCommunityMembers');
 	  var options = {
 		    method: 'GET',
 		    uri: 'https://' + properties.get('connections_host') + COMM_MEMBERS_URI + id,
@@ -80,17 +78,15 @@ exports.getCommunityMembers = function(properties, id) {
 	        "pass": properties.get('connections_password')
 	    },
 	    resolveWithFullResponse: true, // gives us the statusCode
-	    json: false // Automatically parses the body to JSON
+	    json: false // do not parse the result to JSON
 		};
-		console.log('getting community members with options:', options);
 	
 		rp(options)
 	  .then(function (result) {
-	  	// set explicityArray to true to force an array so we can iterate through it, even if there is only one result
+	  	// set explicitArray to true to force an array so we can iterate through it, even if there is only one result
 	    parseString(result.body, { explicitArray:true }, function(err, parsedXml) {
 	    	if ( err === null ) {
-		    	console.log('error in parse of members is', err);
-		    	console.log('nbr of members:', parsedXml.feed.entry.length);
+		    	console.log('id', id, 'has this many members:', parsedXml.feed.entry.length);
 		    	var members = [];
 		    	for (var i = 0; i < parsedXml.feed.entry.length; i++) {
 		    		// if a user is inactive, there is no email address...so check for one
@@ -121,13 +117,14 @@ exports.getCommunityMembers = function(properties, id) {
 
 exports.getCommunityFiles = function(properties, id){
 
+	console.log('in .getCommunityFiles, id is [', id, ']');
+
 	return new Promise(function(resolve, reject){
 		
 		var COMM_FILES_URI = '/files/basic/api/communitycollection/'
 			+ id
 			+ '/feed?sC=document&pageSize=500&sortBy=title&type=communityFiles';
 
-	  console.log('in getCommunityFiles');
 	  var options = {
 		    method: 'GET',
 		    uri: 'https://' + properties.get('connections_host') + COMM_FILES_URI,
@@ -138,28 +135,30 @@ exports.getCommunityFiles = function(properties, id){
 	    resolveWithFullResponse: true, // gives us the statusCode
 	    json: false // don't parse the result to JSON
 		};
-		console.log('getting community files with options:', options);
 
 		rp(options)
 	  .then(function (result) {
 	    parseString(result.body, { explicitArray:true }, function(err, parsedXml) {
-	    	if ( err ) {
-	    		console.log('error in parsing files!', err);
-	    	}
-	    	var files = [];
-	    	if ( parsedXml.feed['opensearch:totalResults'] > 0 ) {
-		    	for (var i = 0; i < parsedXml.feed.entry.length; i++) {
-		    		var sizeLink = parsedXml.feed.entry[i].link.find(function(item) {
-		    			return typeof item.$.length !== 'undefined';
-		    		});
-		    		var file = {
-		    				title: parsedXml.feed.entry[i].title[0]._,
-		    				size: sizeLink.$.length
-		    		};
-		    		files.push(file);
+	    	if ( err === null ) {
+	    		console.log('id', id, 'has this many files:', parsedXml.feed['opensearch:totalResults'][0]);
+		    	var files = [];
+		    	if ( parsedXml.feed['opensearch:totalResults'][0] > 0 ) {
+			    	for (var i = 0; i < parsedXml.feed.entry.length; i++) {
+			    		var sizeLink = parsedXml.feed.entry[i].link.find(function(item) {
+			    			return typeof item.$.length !== 'undefined';
+			    		});
+			    		var file = {
+			    				title: parsedXml.feed.entry[i].title[0]._,
+			    				size: sizeLink.$.length
+			    		};
+			    		files.push(file);
+			    	}
 		    	}
-	    	}
-	    	resolve({"type":"files", "data": files});
+		    	resolve({"type":"files", "data": files});
+	    	} else {
+	    		console.log('error parsing files:', err);
+		    	reject('error parsing files: ' + err.message);
+		    }
 	    });
 	  })
 	  .catch(function(err){
@@ -169,20 +168,19 @@ exports.getCommunityFiles = function(properties, id){
 	});
 };
 
+
 exports.getRecentActivity = function(properties, id){
 	
+	console.log('in .getRecentActivity, id is [', id, ']');
 
 	return new Promise(function(resolve, reject){
 		
 		var oneMonthAgo = dateMath.subtract(new Date(), 30, 'day').toISOString();
-		console.log('onemonthago is', oneMonthAgo);
 		
 		var COMM_ACTIVITY_URI = '/connections/opensocial/basic/rest/activitystreams/urn:lsid:lconn.ibm.com:communities.community:'
 			+ id 
 			+ '/@all/@all?rollup=true&shortStrings=true&format=json&updatedSince' + oneMonthAgo;
 			
-
-	  console.log('in getRecentActivity');
 	  var options = {
 		    method: 'GET',
 		    uri: 'https://' + properties.get('connections_host') + COMM_ACTIVITY_URI,
@@ -193,11 +191,9 @@ exports.getRecentActivity = function(properties, id){
 	    resolveWithFullResponse: true, // gives us the statusCode
 	    json: true // parse the body to JSON
 		};
-		console.log('getting recent activity files with options:', options);
 
 		rp(options)
 	  .then(function (result) {
-//	  	console.dir(result.body.list);
 	    	console.log('id', id, 'has this many updates:', result.body.list.length);
 	    	var activity = [];
 	    	for (var i = 0; i < result.body.list.length; i++) {

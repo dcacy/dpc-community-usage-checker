@@ -4,10 +4,10 @@ var rp = require('request-promise');
 var Promise = require('promise');
 var dateMath = require('date-arithmetic');
 
-/*
+/**
 * this call will get the list of Communities from Connections
-* INPUT: n/a
-* RETURNS: json containing the data from Connections
+* @param {object} json containing credentials
+* @returns {object} json containing the data from Connections
 */
 exports.getAllCommunities = function(properties) {
 	
@@ -23,17 +23,16 @@ exports.getAllCommunities = function(properties) {
 		      "user": properties.get('connections_userid'),
 		      "pass": properties.get('connections_password')
 		  },
-		  resolveWithFullResponse: true, // gives us the statusCode
 		  json: false // do not parse the result to JSON
 		};
 		rp(options)
 		.then(function (resultXML) {
 		    // parse the XML to JSON
-		    parseString(resultXML.body, { explicitArray:false }, function(err, parsedXml) {
+		    parseString(resultXML, { explicitArray:false }, function(err, parsedXml) {
 		      if ( err === null ) {
 		        var communityInfo = [];
 		        for (var i = 0; i < parsedXml.feed.entry.length; i++) {
-		        	// just return some of the data
+		        	// just return the data we want
 		        	var entry = {
 		        			title: parsedXml.feed.entry[i].title._,
 		        			id: parsedXml.feed.entry[i]['snx:communityUuid'],
@@ -54,13 +53,18 @@ exports.getAllCommunities = function(properties) {
 	    });
 		})
 		.catch(function (err) {
-		    console.log('error getting all communities:', err);
-	    	reject('error getting all communities: ' + err.message);
+			// handle error condition in request
+		  console.log('error getting all communities:', err);
+	    reject('error getting all communities: ' + err.message);
 		});
 	});
 };
 
-/*
+/**
+ * Get the list of members of a community
+ * @param {object} json containing credentials
+ * @param {string} community Uuid
+ * @returns {Promise} a Promise which resolves to json containing the member list
 */
 exports.getCommunityMembers = function(properties, id) {
 
@@ -77,16 +81,14 @@ exports.getCommunityMembers = function(properties, id) {
 	        "user": properties.get('connections_userid'),
 	        "pass": properties.get('connections_password')
 	    },
-	    resolveWithFullResponse: true, // gives us the statusCode
 	    json: false // do not parse the result to JSON
 		};
 	
 		rp(options)
-	  .then(function (result) {
+	  .then(function (resultXML) {
 	  	// set explicitArray to true to force an array so we can iterate through it, even if there is only one result
-	    parseString(result.body, { explicitArray:true }, function(err, parsedXml) {
+	    parseString(resultXML, { explicitArray:true }, function(err, parsedXml) {
 	    	if ( err === null ) {
-		    	console.log('id', id, 'has this many members:', parsedXml.feed.entry.length);
 		    	var members = [];
 		    	for (var i = 0; i < parsedXml.feed.entry.length; i++) {
 		    		// if a user is inactive, there is no email address...so check for one
@@ -115,6 +117,12 @@ exports.getCommunityMembers = function(properties, id) {
 };
 
 
+/**
+ * Get the list of files of a community
+ * @param {object} json containing credentials
+ * @param {string} community Uuid
+ * @returns {Promise} a Promise which resolves to json containing the files list
+*/
 exports.getCommunityFiles = function(properties, id){
 
 	console.log('in .getCommunityFiles, id is [', id, ']');
@@ -140,7 +148,6 @@ exports.getCommunityFiles = function(properties, id){
 	  .then(function (result) {
 	    parseString(result.body, { explicitArray:true }, function(err, parsedXml) {
 	    	if ( err === null ) {
-	    		console.log('id', id, 'has this many files:', parsedXml.feed['opensearch:totalResults'][0]);
 		    	var files = [];
 		    	if ( parsedXml.feed['opensearch:totalResults'][0] > 0 ) {
 			    	for (var i = 0; i < parsedXml.feed.entry.length; i++) {
@@ -169,6 +176,12 @@ exports.getCommunityFiles = function(properties, id){
 };
 
 
+/**
+ * Get the list of recent activity (last 30 days) of a community
+ * @param {object} json containing credentials
+ * @param {string} community Uuid
+ * @returns {Promise} a Promise which resolves to json containing the activity list
+*/
 exports.getRecentActivity = function(properties, id){
 	
 	console.log('in .getRecentActivity, id is [', id, ']');
@@ -189,12 +202,11 @@ exports.getRecentActivity = function(properties, id){
 	        "pass": properties.get('connections_password')
 	    },
 	    resolveWithFullResponse: true, // gives us the statusCode
-	    json: true // parse the body to JSON
+	    json: true // parse the body to JSON!
 		};
 
 		rp(options)
 	  .then(function (result) {
-	    	console.log('id', id, 'has this many updates:', result.body.list.length);
 	    	var activity = [];
 	    	for (var i = 0; i < result.body.list.length; i++) {
 	        var details = {

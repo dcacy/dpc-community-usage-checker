@@ -1,6 +1,6 @@
+/*global dateFormat */
 
-
-/*
+/**
  * call the /getAllCommunities API and create a datatable from the results
  */
 function getAllCommunities() {
@@ -82,7 +82,11 @@ function getAllCommunities() {
 	  });
 }
 
-
+/**
+ * Build datatables for files, members, and activity
+ * @param json
+ * @returns
+ */
 function processCommunityDetails(json) {
 
 	$('#communityDetailsWrapper').show();
@@ -188,6 +192,7 @@ function processCommunityDetails(json) {
     });
 	}
 	if ( activitiesFound ) {
+		console.log('activities.data:', activities.data);
 		var activitiesTable = $('#activitiesTable').DataTable( {
       data: activities.data,
       autoWidth: false,
@@ -218,6 +223,11 @@ function processCommunityDetails(json) {
 
 }
 
+/**
+ * Determines whether the array is long enough to require pagination
+ * @param someArray
+ * @returns {boolean} true if the array needs paging, false if it does not
+ */
 function determinePaging(someArray) {
 	if (someArray.length > 10) {
 		return true;

@@ -35,6 +35,7 @@
 // @endCopyright
 //*********************** IBM COPYRIGHT END  ***********************************
  *
+ *@author Darren Cacy dcacy@us.ibm.com
  */
 var express = require('express');
 var cfenv = require('cfenv');
@@ -44,7 +45,6 @@ var Promise = require('promise');
 var url = require('url');
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
-
 
 var parseString = require('xml2js').parseString;
 
@@ -57,10 +57,9 @@ var properties = propertiesReader('./connections.properties');
 // this module knows how to get Community content
 var community = require('./modules/community');
 
-/*
-* this call will get the list of Communities from Connections
-* INPUT: n/a
-* RETURNS: json containing the data from Connections
+/**
+* Get the list of Communities from Connections
+* @returns {object} json containing the data from Connections
 */
 app.get('/getAllCommunities', function(req, res) {
 	community.getAllCommunities(properties)  // it's a promise
@@ -73,7 +72,11 @@ app.get('/getAllCommunities', function(req, res) {
 	});
 });
 
-
+/**
+ * Get the members, files, and recent activity for a community
+ * @param {string} the community Uuid
+ * @returns {object} json array containing the members, files, and recent activity
+ */
 app.get('/getCommunityDetails', function(req, res){
 	console.log('in /getCommunityDetails');
   var qs = url.parse(req.url,true).query;
@@ -95,57 +98,7 @@ app.get('/getCommunityDetails', function(req, res){
   }
 });
 
-/**
-* Given a Community, return their members
-*/
-//app.get('/getCommunityMembers', function(req, res) {
-//  console.log('in /getCommunityMembers');
-//  var qs = url.parse(req.url,true).query;
-//  console.log('qs is', qs);
-//  if ( qs.id ) {
-//  	community.getCommunityMembers(properties, [qs.id])
-//  	.then(function(result){
-//  		console.log('got promise and it is', result);
-//  		res.end(result.toString());
-//  	})
-//  	.catch(function(err){
-//  		console.log('getCommunityMembers returned error',err);
-//  		res.status(500).end(err);
-//  	});
-//  } else {
-//  	res.end('no id provided');
-//  }
-//
-//});
-
-//app.get('/bizCard/:protocol/:host/:profiles/:json/:therest', function(req, res) {
-////app.get('/bizCard', function(req, res){
-//	//http://localhost:6014/bizCard/http/dpc-c60.ibmcollabcloud.com%3A80/profiles/json/semanticTagProfileView.do?email=dmishkey@greenwell.com&auth=true&etag=20170405.124747&suppress401=true
-////	console.log('host is', req.params.host);
-////	console.dir(req.params);
-////	console.log('this is url:', req.url);
-////	console.log('url is', url);
-////	var qs = req.url.split('?');
-//	
-////	var parsed = url.parse(req.url,true);
-////	console.log('parsed is', qs[1]);
-//  var qs = url.parse(req.url,true).query;
-////  console.dir(qs);
-//  var urlString = req.params.protocol + '://' + req.params.host + '/' + req.params.profiles + '/' + req.params.json + '/' + req.params.therest;
-//  urlString += '?email=' + qs.email + '&auth=' + qs.auth + '&etag=' + qs.etag + '&suppress401=' + qs.suppress401;
-////	res.end(urlString);
-//	rp(urlString)
-//	.then(function(result){
-//		console.log('result of bizcard is', result);
-//		res.json(result);
-//	})
-//	.catch(function(err){
-//		console.log('problem getting business card:', err);
-//	});
-//});
-//app.get('/credentials/:deviceId', function(req, res) {
-
-
+// serve static files from /public directory
 app.use(express.static(__dirname + '/public'));
 
 app.listen(appEnv.port || 3001, '0.0.0.0', function() {

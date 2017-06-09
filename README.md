@@ -28,7 +28,7 @@ View demo at <a target="top" href="https://dpc-community-usage-checker.mybluemix
 
 6. Start the application locally:
 
-  ```none
+  ```
   npm start
   ```
 

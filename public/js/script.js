@@ -1,7 +1,49 @@
-/*global dateFormat */
+/**
+ *
+ *********************** IBM COPYRIGHT START  *********************************
+// @copyright(disclaimer)
+//
+// Licensed Materials - Property of IBM
+// 5724-L31
+// (C) Copyright IBM Corp. 2017. All Rights Reserved.
+//
+// US Government Users Restricted Rights
+// Use, duplication or disclosure restricted by GSA ADP Schedule
+// Contract with IBM Corp.
+//
+// DISCLAIMER OF WARRANTIES :
+//
+// Permission is granted to copy and modify this Sample code, and to
+// distribute modified versions provided that both the copyright
+// notice, and this permission notice and warranty disclaimer appear
+// in all copies and modified versions.
+//
+// THIS SAMPLE CODE IS LICENSED TO YOU "AS-IS".
+// IBM  AND ITS SUPPLIERS AND LICENSORS  DISCLAIM
+// ALL WARRANTIES, EITHER EXPRESS OR IMPLIED, IN SUCH SAMPLE CODE,
+// INCLUDING THE WARRANTY OF NON-INFRINGEMENT AND THE IMPLIED WARRANTIES
+// OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT
+// WILL IBM OR ITS LICENSORS OR SUPPLIERS BE LIABLE FOR ANY DAMAGES ARISING
+// OUT OF THE USE OF  OR INABILITY TO USE THE SAMPLE CODE, DISTRIBUTION OF
+// THE SAMPLE CODE, OR COMBINATION OF THE SAMPLE CODE WITH ANY OTHER CODE.
+// IN NO EVENT SHALL IBM OR ITS LICENSORS AND SUPPLIERS BE LIABLE FOR ANY
+// LOST REVENUE, LOST PROFITS OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL,
+// CONSEQUENTIAL,INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS
+// OF THE THEORY OF LIABILITY, EVEN IF IBM OR ITS LICENSORS OR SUPPLIERS
+// HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+//
+// @endCopyright
+//*********************** IBM COPYRIGHT END  ***********************************
+ *
+ *@author Darren Cacy dcacy@us.ibm.com
+ */
+/*global dateFormat,document */
+
 
 /**
  * call the /getAllCommunities API and create a datatable from the results
+ * @params n/a
+ * @returns n/a
  */
 function getAllCommunities() {
   $('#communitiesLoadingDiv').mask('Please Wait...<br/><img src="/images/watson.gif">');
@@ -60,6 +102,7 @@ function getAllCommunities() {
     		$('#tabs').remove();
     		$('#error').html('');
     		
+    		$('#communityDetailsWrapper').show();
         $('#detailsLoadingDiv').mask('<div style="text-align:center;" style="background-color:#fff;">Please Wait...<br/><img src="/images/watson.gif"></div>',200);
         // we set the community-id attribute earlier so that it would be here now
     		$.get('/getCommunityDetails', { id : this.getAttribute('community-id')}, processCommunityDetails, 'json')
@@ -84,18 +127,18 @@ function getAllCommunities() {
 
 /**
  * Build datatables for files, members, and activity
- * @param json
- * @returns
+ * @param {object} json array containing details for a Community
+ * @returns n/a
  */
 function processCommunityDetails(json) {
 
-	$('#communityDetailsWrapper').show();
 	var tabsHeader = '';
 	var tabsDetail = '';
 	var tabsCounter = 0;
 	var filesFound = false;
 	var membersFound = false;
 	var activitiesFound = false;
+	var subcommunitiesFound = false;
 	
 	// find members
 	var members = json.find( function(item) {
@@ -138,6 +181,19 @@ function processCommunityDetails(json) {
 		tabsDetail += '<table id="activitiesTable"></table>';
 		tabsDetail += '</div>';
 		activitiesFound = true;
+		tabsCounter++;
+	}
+	
+	// find subcommunities
+	var subcommunities = json.find( function(item) {
+    return item.type === 'subcommunities';
+	});
+	if (activities.data.length > 0) {
+		tabsHeader += '<li><a href="#tabs-' + tabsCounter + '">Subcommunities (' + subcommunities.data.length + ')</a></li>';
+		tabsDetail += '<div id="tabs-' + tabsCounter + '">';
+		tabsDetail += '<table id="subcommunitiesTable"></table>';
+		tabsDetail += '</div>';
+		subcommunitiesFound = true;
 		tabsCounter++;
 	}
 	
@@ -192,7 +248,6 @@ function processCommunityDetails(json) {
     });
 	}
 	if ( activitiesFound ) {
-		console.log('activities.data:', activities.data);
 		var activitiesTable = $('#activitiesTable').DataTable( {
       data: activities.data,
       autoWidth: false,
@@ -216,6 +271,20 @@ function processCommunityDetails(json) {
 	      		}    			
 	      	} 
 	      },
+      ]
+    });
+	}		
+	if ( subcommunitiesFound ) {
+		var subcommunitiesTable = $('#subcommunitiesTable').DataTable( {
+      data: subcommunities.data,
+      autoWidth: false,
+      searching: false,
+      paging: determinePaging(subcommunities.data),
+      "columns": [
+        { "data": "title" }
+      ],
+      "columnDefs" : [
+        { "title": "Title", "targets": 0 }
       ]
     });
 	}	

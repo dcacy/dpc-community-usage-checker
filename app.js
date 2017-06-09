@@ -85,6 +85,7 @@ app.get('/getCommunityDetails', function(req, res){
     promises.push(community.getCommunityMembers(properties, qs.id));
     promises.push(community.getCommunityFiles(properties, qs.id));
     promises.push(community.getRecentActivity(properties, qs.id));
+    promises.push(community.getSubcommunities(properties, qs.id));
   	Promise.all(promises) // process all promises once they've all returned
   	.then(function(allData) {
   		res.json(allData);

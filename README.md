@@ -16,9 +16,9 @@ View demo at <a target="top" href="https://dpc-community-usage-checker.mybluemix
 
 1. Edit the file to provide your Connections server's host name, and an ID and password.
 
-1. Download `date.format.js` from [https://gist.github.com/jhbsk/4690754](https://gist.github.com/jhbsk/4690754) and copy it to the `WebContent/js` directory.
+1. Download `date.format.js` from [https://gist.github.com/jhbsk/4690754](https://gist.github.com/jhbsk/4690754) and copy it to the `public/js` directory.
 
-1. Download `jquery.loadmask.min.js` from [https://github.com/wallynm/jquery-loadmask](https://github.com/wallynm/jquery-loadmask) and copy it to the `WebContent/js` directory.
+1. Download `jquery.loadmask.min.js` from [https://github.com/wallynm/jquery-loadmask](https://github.com/wallynm/jquery-loadmask) and copy it to the `public/js` directory.
 
 1. Install the dependencies your application needs:
 
@@ -33,3 +33,5 @@ View demo at <a target="top" href="https://dpc-community-usage-checker.mybluemix
   ```
 
 7. Point your browser to [http://localhost:3001](http://localhost:3001).
+
+Please read the LICENSE file for copyright and license information!
